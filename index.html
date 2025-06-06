@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Tank Sizing Calculator - Singapore Standards</title>
+    <style>
+        /* Global Variables and Reset */
+        :root {
+            --primary-color: #0066cc;
+            --secondary-color: #00a8e8;
+            --accent-color: #00d4aa;
+            --danger-color: #ff4757;
+            --warning-color: #ffa502;
+            --success-color: #2ed573;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #2c3e50;
+            --text-secondary: #5a6c7d;
+            --text-tertiary: #8395a7;
+            --border-color: #dee2e6;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.25);
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #4da6ff;
+            --secondary-color: #66d9ff;
+            --accent-color: #00ffcc;
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #b8b8b8;
+            --text-tertiary: #888888;
+            --border-color: #2c3e50;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background-color var(--transition-normal), color var(--transition-normal);
+        }
+
+        /* Background Animation */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .water-bubble {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, rgba(0, 168, 232, 0.3) 0%, rgba(0, 168, 232, 0) 70%);
+            border-radius: 50%;
+            animation: float-up 8s infinite ease-in-out;
+            opacity: 0;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            padding: 1rem 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 3s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% {
+                filter: hue-rotate(0deg);
+            }
+            50% {
+                filter: hue-rotate(30deg);
+            }
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--glass-border);
+            transform: translateY(-2px);
+        }
+
+        .btn-icon {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            transition: all var(--transition-normal);
+        }
+
+        .btn-icon:hover {
+            transform: rotate(180deg) scale(1.1);
+            background: var(--glass-border);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 6rem 2rem 2rem;
+            min-height: 100vh;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: text-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes text-glow {
+            from {
+                filter: brightness(1) drop-shadow(0 0 10px rgba(0, 102, 204, 0.5));
+            }
+            to {
+                filter: brightness(1.2) drop-shadow(0 0 20px rgba(0, 212, 170, 0.7));
+            }
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            opacity: 0;
+            animation: fade-in-up 1s ease-out forwards;
+            animation-delay: 0.3s;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--glass-shadow);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+            pointer-events: none;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 102, 204, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all var(--transition-normal);
+            position: relative;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--bg-primary);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-input-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            pointer-events: none;
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: var(--bg-tertiary);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background var(--transition-normal);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform var(--transition-normal);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toggle-switch.active {
+            background: var(--primary-color);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        /* Tank Visualization */
+        .tank-container {
+            position: relative;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .tank-3d {
+            width: 200px;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate-3d 10s linear infinite;
+        }
+
+        @keyframes rotate-3d {
+            from {
+                transform: rotateY(0deg);
+            }
+            to {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .tank-face {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 212, 170, 0.3));
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+        }
+
+        .tank-front,
+        .tank-back {
+            width: 200px;
+            height: 300px;
+        }
+
+        .tank-front {
+            transform: translateZ(100px);
+        }
+
+        .tank-back {
+            transform: translateZ(-100px) rotateY(180deg);
+        }
+
+        .tank-left,
+        .tank-right {
+            width: 200px;
+            height: 300px;
+            transform: rotateY(90deg);
+        }
+
+        .tank-left {
+            transform: rotateY(-90deg) translateZ(100px);
+        }
+
+        .tank-right {
+            transform: rotateY(90deg) translateZ(100px);
+        }
+
+        .tank-top,
+        .tank-bottom {
+            width: 200px;
+            height: 200px;
+        }
+
+        .tank-top {
+            transform: rotateX(90deg) translateZ(150px);
+        }
+
+        .tank-bottom {
+            transform: rotateX(-90deg) translateZ(150px);
+        }
+
+        .water-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, rgba(0, 168, 232, 0.8), rgba(0, 102, 204, 0.9));
+            transition: height 1s ease-in-out;
+            overflow: hidden;
+        }
+
+        .water-wave {
+            position: absolute;
+            top: -10px;
+            left: -50%;
+            width: 200%;
+            height: 20px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" style="fill:rgba(255,255,255,0.3)"></path></svg>') repeat-x;
+            animation: wave 3s linear infinite;
+        }
+
+        @keyframes wave {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Results Section */
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, var(--glass-bg), transparent);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            50% {
+                transform: translate(50%, 50%) rotate(180deg);
+            }
+        }
+
+        .result-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-fast);
+            box-shadow: var(--shadow-md);
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto;
+            border: 4px solid var(--bg-tertiary);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slide-in 0.3s ease-out;
+        }
+
+        @keyframes slide-in {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-success {
+            background: rgba(46, 213, 115, 0.1);
+            border: 1px solid rgba(46, 213, 115, 0.3);
+            color: var(--success-color);
+        }
+
+        .alert-warning {
+            background: rgba(255, 165, 2, 0.1);
+            border: 1px solid rgba(255, 165, 2, 0.3);
+            color: var(--warning-color);
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: var(--danger-color);
+        }
+
+        /* Charts Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 2rem;
+        }
+
+        .chart-canvas {
+            max-height: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .container {
+                padding: 5rem 1rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-controls {
+                gap: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .btn-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .logo {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Touch-friendly styles */
+        @media (hover: none) {
+            .btn:active {
+                transform: scale(0.95);
+            }
+
+            .card:active {
+                transform: scale(0.98);
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            nav,
+            .animated-bg,
+            .btn-icon,
+            .toggle-container,
+            .particles,
+            .hero,
+            #calculatorForm,
+            .btn {
+                display: none !important;
+            }
+
+            .container {
+                padding: 20px;
+                max-width: 100%;
+            }
+
+            .card {
+                background: white;
+                border: 1px solid #ccc;
+                box-shadow: none;
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+            }
+            
+            .card-header {
+                border-bottom: 2px solid #0066cc;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .results {
+                display: block !important;
+            }
+            
+            .result-card {
+                display: inline-block;
+                width: 48%;
+                margin: 1%;
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+            }
+            
+            #resultsSection {
+                display: block !important;
+            }
+            
+            .form-grid {
+                display: none;
+            }
+            
+            h1, h2 {
+                color: #0066cc;
+            }
+            
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            td, th {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus Styles */
+        :focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+
+        /* Additional Animation Classes */
+        .fade-in {
+            animation: fade-in 0.5s ease-out;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .slide-up {
+            animation: slide-up 0.5s ease-out;
+        }
+
+        @keyframes slide-up {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .scale-in {
+            animation: scale-in 0.3s ease-out;
+        }
+
+        @keyframes scale-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            animation: modal-in 0.3s ease-out;
+        }
+
+        @keyframes modal-in {
+            from {
+                transform: scale(0.8) translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .modal-close:hover {
+            background: var(--danger-color);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        /* Particle Effects */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: particle-float 20s linear infinite;
+        }
+
+        @keyframes particle-float {
+            from {
+                transform: translate(0, 100vh) rotate(0deg);
+            }
+            to {
+                transform: translate(100vw, -100vh) rotate(720deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="animated-bg" id="animatedBg"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">💧 AquaSize Pro </div>
+            <div class="nav-controls">
+                <button class="btn-icon" id="soundToggle" aria-label="Toggle Sound">
+                    <span id="soundIcon">🔊</span>
+                </button>
+                <button class="btn-icon" id="themeToggle" aria-label="Toggle Theme">
+                    <span id="themeIcon">🌙</span>
+                </button>
+                <button class="btn btn-secondary" onclick="showInfo()">ℹ️ Info</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1> Water Tank Sizing Calculator</h1>
+            <p>Professional water storage calculation based on Singapore PUB standards and SS 636:2018 guidelines <br>Created By Kyaw Myo Naing </p>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="scrollToCalculator()">Start Calculation</button>
+                <button class="btn btn-secondary" onclick="showStandards()">View Standards</button>
+            </div>
+        </section>
+
+        <!-- Calculator Section -->
+        <section id="calculator" class="fade-in">
+            <!-- Building Information Card -->
+            <div class="card slide-up">
+                <div class="card-header">
+                    <div class="card-icon">🏢</div>
+                    <h2 class="card-title">Building Information</h2>
+                </div>
+                <form id="calculatorForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="buildingType">Building Type</label>
+                            <select class="form-select" id="buildingType" required>
+                                <option value="">Select building type</option>
+                                <option value="residential-landed">Residential - Landed</option>
+                                <option value="residential-condo">Residential - Condominium</option>
+                                <option value="residential-hdb">Residential - HDB</option>
+                                <option value="commercial-office">Commercial - Office</option>
+                                <option value="commercial-retail">Commercial - Retail</option>
+                                <option value="industrial">Industrial</option>
+                                <option value="hotel">Hotel</option>
+                                <option value="hospital">Hospital</option>
+                                <option value="school">Educational Institution</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="occupants">Number of Occupants</label>
+                            <input type="number" class="form-input" id="occupants" min="1" max="10000" required>
+                            <span class="tooltip" data-tooltip="Average daily occupancy">ℹ️</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="storageHours">Storage Duration (Hours)</label>
+                            <input type="number" class="form-input" id="storageHours" min="12" max="72" value="24" required>
+                            <span class="tooltip" data-tooltip="PUB recommends 24-36 hours">ℹ️</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="floors">Number of Floors</label>
+                            <input type="number" class="form-input" id="floors" min="1" max="100" value="1" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Additional Requirements Card -->
+            <div class="card slide-up" style="animation-delay: 0.1s;">
+                <div class="card-header">
+                    <div class="card-icon">⚙️</div>
+                    <h2 class="card-title">Additional Requirements</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <div class="toggle-container">
+                            <label class="form-label">Fire Fighting Reserve</label>
+                            <div class="toggle-switch" id="fireReserve"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-container">
+                            <label class="form-label">Cooling Tower Makeup</label>
+                            <div class="toggle-switch" id="coolingTower"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-container">
+                            <label class="form-label">Swimming Pool</label>
+                            <div class="toggle-switch" id="swimmingPool"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="toggle-container">
+                            <label class="form-label">Irrigation System</label>
+                            <div class="toggle-switch" id="irrigation"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculate Button -->
+            <div class="text-center">
+                <button class="btn btn-primary" onclick="calculateTankSize()" style="font-size: 1.25rem; padding: 1rem 3rem;">
+                    Calculate Tank Size
+                </button>
+            </div>
+
+            <!-- Loading Animation -->
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Calculating optimal tank size...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" style="display: none;">
+                <!-- Calculation Results -->
+                <div class="results" id="results"></div>
+
+                <!-- Detailed Breakdown -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📊</div>
+                        <h2 class="card-title">Detailed Breakdown</h2>
+                    </div>
+                    <div id="breakdownContent"></div>
+                    <div class="chart-container">
+                        <canvas id="consumptionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Export Options -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📄</div>
+                        <h2 class="card-title">Export Report</h2>
+                    </div>
+                    <div class="form-grid">
+                        <button class="btn btn-secondary" onclick="exportPDF()">📥 Generate PDF Report</button>
+                        <button class="btn btn-secondary" onclick="exportCSV()">📊 Export to CSV</button>
+                        <button class="btn btn-secondary" onclick="printReport()">🖨️ Print Report</button>
+                        <button class="btn btn-secondary" onclick="shareResults()">📤 Share Results</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Info Modal -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">About This Calculator</h3>
+                <button class="modal-close" onclick="closeModal('infoModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>This calculator is designed according to Singapore's water supply standards:</p>
+                <ul>
+                    <li>PUB (Public Utilities Board) Guidelines</li>
+                    <li>SS 636:2018 - Code of Practice for Water Services</li>
+                    <li>Building and Construction Authority (BCA) Requirements</li>
+                </ul>
+                <h4>Key Features:</h4>
+                <ul>
+                    <li>Accurate consumption calculations based on building type</li>
+                    <li>Peak hour demand factor consideration</li>
+                    <li>Fire fighting reserve calculations (SCDF requirements)</li>
+                    <li>Additional water requirements for special facilities</li>
+                    <li>3D visualization and detailed reporting</li>
+                </ul>
+                <p><strong>Version:</strong> 2.0.1</p>
+                <p><strong>Last Updated:</strong> June 2025</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Standards Modal -->
+    <div class="modal" id="standardsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Singapore Water Standards</h3>
+                <button class="modal-close" onclick="closeModal('standardsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <h4>Water Consumption Rates (SS 636:2018)</h4>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--bg-tertiary);">
+                            <th style="padding: 0.75rem; text-align: left;">Building Type</th>
+                            <th style="padding: 0.75rem; text-align: right;">Litres/Person/Day</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 0.75rem;">Residential - Landed</td>
+                            <td style="padding: 0.75rem; text-align: right;">300</td>
+                        </tr>
+                        <tr style="background: var(--bg-secondary);">
+                            <td style="padding: 0.75rem;">Residential - Condominium</td>
+                            <td style="padding: 0.75rem; text-align: right;">270</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem;">Residential - HDB</td>
+                            <td style="padding: 0.75rem; text-align: right;">250</td>
+                        </tr>
+                        <tr style="background: var(--bg-secondary);">
+                            <td style="padding: 0.75rem;">Commercial - Office</td>
+                            <td style="padding: 0.75rem; text-align: right;">45</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem;">Commercial - Retail</td>
+                            <td style="padding: 0.75rem; text-align: right;">50</td>
+                        </tr>
+                        <tr style="background: var(--bg-secondary);">
+                            <td style="padding: 0.75rem;">Industrial</td>
+                            <td style="padding: 0.75rem; text-align: right;">45</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem;">Hotel</td>
+                            <td style="padding: 0.75rem; text-align: right;">300</td>
+                        </tr>
+                        <tr style="background: var(--bg-secondary);">
+                            <td style="padding: 0.75rem;">Hospital</td>
+                            <td style="padding: 0.75rem; text-align: right;">450</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem;">Educational Institution</td>
+                            <td style="padding: 0.75rem; text-align: right;">40</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h4 style="margin-top: 1.5rem;">Peak Hour Factors</h4>
+                <ul>
+                    <li>Small buildings (&lt;50 people): 3.0</li>
+                    <li>Medium buildings (50-500 people): 2.5</li>
+                    <li>Large buildings (&gt;500 people): 2.0</li>
+                </ul>
+                <h4>Storage Requirements</h4>
+                <ul>
+                    <li>Minimum: 12 hours of average daily demand</li>
+                    <li>Recommended: 24-36 hours</li>
+                    <li>Critical facilities: 48-72 hours</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Audio Context for Sound Effects
+        let audioContext;
+        let soundEnabled = true;
+        
+        // Global variable to store calculation results for export
+        window.calculationResults = null;
+
+        // Initialize Audio Context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Play Sound Effect
+        function playSound(frequency = 440, duration = 100, type = 'sine') {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+
+        // Click Sound
+        function playClickSound() {
+            playSound(600, 50);
+        }
+
+        // Success Sound
+        function playSuccessSound() {
+            playSound(523, 100);
+            setTimeout(() => playSound(659, 100), 100);
+            setTimeout(() => playSound(784, 150), 200);
+        }
+
+        // Error Sound
+        function playErrorSound() {
+            playSound(200, 200, 'sawtooth');
+        }
+
+        // Theme state stored in memory
+        let currentTheme = 'light';
+
+        // Initialize Theme
+        function initTheme() {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            updateThemeIcon(currentTheme);
+        }
+
+        // Toggle Theme
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            updateThemeIcon(currentTheme);
+            playClickSound();
+        }
+
+        // Update Theme Icon
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            icon.textContent = theme === 'light' ? '🌙' : '☀️';
+        }
+
+        // Toggle Sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            icon.textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) {
+                initAudio();
+                playClickSound();
+            }
+        }
+
+        // Create Background Bubbles
+        function createBubbles() {
+            const bg = document.getElementById('animatedBg');
+            for (let i = 0; i < 10; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'water-bubble';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDelay = Math.random() * 8 + 's';
+                bubble.style.animationDuration = (8 + Math.random() * 4) + 's';
+                bg.appendChild(bubble);
+            }
+        }
+
+        // Create Particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Singapore Water Consumption Standards (litres per person per day)
+        const consumptionRates = {
+            'residential-landed': 300,
+            'residential-condo': 270,
+            'residential-hdb': 250,
+            'commercial-office': 45,
+            'commercial-retail': 50,
+            'industrial': 45,
+            'hotel': 300,
+            'hospital': 450,
+            'school': 40
+        };
+
+        // Peak Hour Factors
+        function getPeakFactor(occupants) {
+            if (occupants < 50) return 3.0;
+            if (occupants < 500) return 2.5;
+            return 2.0;
+        }
+
+        // Calculate Tank Size
+        function calculateTankSize() {
+            playClickSound();
+            
+            const buildingType = document.getElementById('buildingType').value;
+            const occupants = parseInt(document.getElementById('occupants').value);
+            const storageHours = parseInt(document.getElementById('storageHours').value);
+            const floors = parseInt(document.getElementById('floors').value);
+            
+            if (!buildingType || !occupants || !storageHours) {
+                showAlert('Please fill in all required fields', 'error');
+                playErrorSound();
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            
+            setTimeout(() => {
+                // Base consumption calculation
+                const dailyConsumptionPerPerson = consumptionRates[buildingType];
+                const totalDailyConsumption = dailyConsumptionPerPerson * occupants;
+                
+                // Peak hour demand
+                const peakFactor = getPeakFactor(occupants);
+                const peakHourDemand = (totalDailyConsumption / 24) * peakFactor;
+                
+                // Storage requirement
+                const storageRequirement = (totalDailyConsumption / 24) * storageHours;
+                
+                // Additional requirements
+                let additionalStorage = 0;
+                
+                if (document.getElementById('fireReserve').classList.contains('active')) {
+                    // SCDF requirement: typically 9-54 m³ depending on building type
+                    additionalStorage += floors > 4 ? 54000 : 9000;
+                }
+                
+                if (document.getElementById('coolingTower').classList.contains('active')) {
+                    additionalStorage += occupants * 20; // 20L per person for cooling
+                }
+                
+                if (document.getElementById('swimmingPool').classList.contains('active')) {
+                    additionalStorage += 10000; // 10m³ makeup water
+                }
+                
+                if (document.getElementById('irrigation').classList.contains('active')) {
+                    additionalStorage += 5000; // 5m³ for irrigation
+                }
+                
+                // Total tank size
+                const totalTankSize = storageRequirement + additionalStorage;
+                
+                // Recommended tank dimensions (assuming rectangular tank)
+                const tankVolumeCubic = totalTankSize / 1000; // Convert to m³
+                const tankHeight = Math.min(3, Math.sqrt(tankVolumeCubic / 2)); // Max 3m height
+                const tankLength = Math.sqrt(tankVolumeCubic * 2 / tankHeight);
+                const tankWidth = tankLength / 1.5; // Aspect ratio 1.5:1
+                
+                // Store results globally for export functions
+                window.calculationResults = {
+                    totalTankSize,
+                    storageRequirement,
+                    additionalStorage,
+                    dailyConsumption: totalDailyConsumption,
+                    peakHourDemand,
+                    tankHeight,
+                    tankLength,
+                    tankWidth,
+                    buildingType,
+                    occupants,
+                    storageHours
+                };
+                
+                // Hide loading and show results
+                document.getElementById('loading').style.display = 'none';
+                displayResults(window.calculationResults);
+                
+                playSuccessSound();
+            }, 1500);
+        }
+
+        // Display Results
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.style.display = 'block';
+            
+            // Results cards
+            const resultsHTML = `
+                <div class="result-card scale-in">
+                    <div class="result-icon">💧</div>
+                    <div class="result-value">${(data.totalTankSize / 1000).toFixed(1)}</div>
+                    <div class="result-label">Total Tank Size (m³)</div>
+                </div>
+                <div class="result-card scale-in" style="animation-delay: 0.1s;">
+                    <div class="result-icon">📊</div>
+                    <div class="result-value">${data.dailyConsumption.toLocaleString()}</div>
+                    <div class="result-label">Daily Consumption (L)</div>
+                </div>
+                <div class="result-card scale-in" style="animation-delay: 0.2s;">
+                    <div class="result-icon">⚡</div>
+                    <div class="result-value">${data.peakHourDemand.toFixed(0)}</div>
+                    <div class="result-label">Peak Hour Demand (L/hr)</div>
+                </div>
+                <div class="result-card scale-in" style="animation-delay: 0.3s;">
+                    <div class="result-icon">📏</div>
+                    <div class="result-value">${data.tankLength.toFixed(1)} × ${data.tankWidth.toFixed(1)} × ${data.tankHeight.toFixed(1)}</div>
+                    <div class="result-label">Dimensions L×W×H (m)</div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = resultsHTML;
+            
+            // Detailed breakdown
+            const breakdownHTML = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 0.75rem;">Base Storage Requirement</td>
+                        <td style="padding: 0.75rem; text-align: right;">${(data.storageRequirement / 1000).toFixed(1)} m³</td>
+                    </tr>
+                    <tr style="background: var(--bg-secondary);">
+                        <td style="padding: 0.75rem;">Additional Requirements</td>
+                        <td style="padding: 0.75rem; text-align: right;">${(data.additionalStorage / 1000).toFixed(1)} m³</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.75rem; font-weight: bold;">Total Tank Size</td>
+                        <td style="padding: 0.75rem; text-align: right; font-weight: bold;">${(data.totalTankSize / 1000).toFixed(1)} m³</td>
+                    </tr>
+                </table>
+            `;
+            
+            document.getElementById('breakdownContent').innerHTML = breakdownHTML;
+            
+            // Create consumption chart
+            createConsumptionChart(data);
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Create Consumption Chart
+        function createConsumptionChart(data) {
+            const canvas = document.getElementById('consumptionChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear previous chart
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Simple bar chart
+            const chartData = [
+                { label: 'Storage', value: data.storageRequirement },
+                { label: 'Additional', value: data.additionalStorage }
+            ];
+            
+            const maxValue = Math.max(...chartData.map(d => d.value));
+            const barWidth = canvas.width / (chartData.length * 2);
+            const barSpacing = barWidth;
+            
+            canvas.height = 300;
+            
+            chartData.forEach((item, index) => {
+                const barHeight = (item.value / maxValue) * 250;
+                const x = barSpacing + (index * (barWidth + barSpacing));
+                const y = canvas.height - barHeight - 30;
+                
+                // Draw bar
+                ctx.fillStyle = index === 0 ? 'var(--primary-color)' : 'var(--secondary-color)';
+                ctx.fillRect(x, y, barWidth, barHeight);
+                
+                // Draw label
+                ctx.fillStyle = 'var(--text-primary)';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(item.label, x + barWidth / 2, canvas.height - 10);
+                
+                // Draw value
+                ctx.fillText((item.value / 1000).toFixed(1) + ' m³', x + barWidth / 2, y - 10);
+            });
+        }
+
+        // Show Alert
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <span>${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}</span>
+                <span>${message}</span>
+            `;
+            
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+            
+            setTimeout(() => {
+                alertDiv.style.animation = 'slide-out 0.3s ease-out forwards';
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 3000);
+        }
+
+        // Modal Functions
+        function showInfo() {
+            playClickSound();
+            document.getElementById('infoModal').classList.add('active');
+        }
+
+        function showStandards() {
+            playClickSound();
+            document.getElementById('standardsModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            playClickSound();
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Export Functions
+        function exportPDF() {
+            playClickSound();
+            // Create a new window with formatted content for PDF
+            const results = window.calculationResults;
+            if (!results) {
+                showAlert('Please calculate tank size first', 'warning');
+                return;
+            }
+            
+            const printWindow = window.open('', '', 'width=800,height=600');
+            const content = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Water Tank Sizing Report - ${new Date().toLocaleDateString()}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; }
+                        h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+                        h2 { color: #333; margin-top: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                        th { background-color: #f5f5f5; font-weight: bold; }
+                        .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+                        .summary { background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                        .result-box { display: inline-block; margin: 10px 20px 10px 0; }
+                        .result-value { font-size: 24px; font-weight: bold; color: #0066cc; }
+                        .result-label { font-size: 12px; color: #666; }
+                        @media print { body { padding: 20px; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div>
+                            <h1>Water Tank Sizing Report</h1>
+                            <p>Based on Singapore PUB Standards & SS 636:2018</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p>Date: ${new Date().toLocaleDateString()}</p>
+                            <p>Time: ${new Date().toLocaleTimeString()}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="summary">
+                        <h2>Project Summary</h2>
+                        <div class="result-box">
+                            <div class="result-value">${(results.totalTankSize / 1000).toFixed(1)} m³</div>
+                            <div class="result-label">Total Tank Size</div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-value">${results.occupants}</div>
+                            <div class="result-label">Occupants</div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-value">${results.storageHours} hrs</div>
+                            <div class="result-label">Storage Duration</div>
+                        </div>
+                    </div>
+                    
+                    <h2>Building Information</h2>
+                    <table>
+                        <tr><td><strong>Building Type</strong></td><td>${results.buildingType.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td></tr>
+                        <tr><td><strong>Number of Occupants</strong></td><td>${results.occupants}</td></tr>
+                        <tr><td><strong>Storage Duration</strong></td><td>${results.storageHours} hours</td></tr>
+                        <tr><td><strong>Daily Consumption Rate</strong></td><td>${consumptionRates[results.buildingType]} L/person/day</td></tr>
+                    </table>
+                    
+                    <h2>Calculation Results</h2>
+                    <table>
+                        <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+                        <tr><td>Total Daily Consumption</td><td>${results.dailyConsumption.toLocaleString()}</td><td>Litres</td></tr>
+                        <tr><td>Peak Hour Demand</td><td>${results.peakHourDemand.toFixed(0)}</td><td>L/hr</td></tr>
+                        <tr><td>Base Storage Requirement</td><td>${(results.storageRequirement / 1000).toFixed(1)}</td><td>m³</td></tr>
+                        <tr><td>Additional Requirements</td><td>${(results.additionalStorage / 1000).toFixed(1)}</td><td>m³</td></tr>
+                        <tr><td><strong>Total Tank Size</strong></td><td><strong>${(results.totalTankSize / 1000).toFixed(1)}</strong></td><td><strong>m³</strong></td></tr>
+                    </table>
+                    
+                    <h2>Recommended Tank Dimensions</h2>
+                    <table>
+                        <tr><th>Dimension</th><th>Value (m)</th></tr>
+                        <tr><td>Length</td><td>${results.tankLength.toFixed(2)}</td></tr>
+                        <tr><td>Width</td><td>${results.tankWidth.toFixed(2)}</td></tr>
+                        <tr><td>Height</td><td>${results.tankHeight.toFixed(2)}</td></tr>
+                        <tr><td>Volume Check</td><td>${(results.tankLength * results.tankWidth * results.tankHeight).toFixed(1)} m³</td></tr>
+                    </table>
+                    
+                    <h2>Additional Requirements Included</h2>
+                    <ul>
+                        ${document.getElementById('fireReserve').classList.contains('active') ? '<li>Fire Fighting Reserve (SCDF Requirements)</li>' : ''}
+                        ${document.getElementById('coolingTower').classList.contains('active') ? '<li>Cooling Tower Makeup Water</li>' : ''}
+                        ${document.getElementById('swimmingPool').classList.contains('active') ? '<li>Swimming Pool Makeup Water</li>' : ''}
+                        ${document.getElementById('irrigation').classList.contains('active') ? '<li>Irrigation System Water</li>' : ''}
+                        ${!document.getElementById('fireReserve').classList.contains('active') && 
+                          !document.getElementById('coolingTower').classList.contains('active') && 
+                          !document.getElementById('swimmingPool').classList.contains('active') && 
+                          !document.getElementById('irrigation').classList.contains('active') ? '<li>None</li>' : ''}
+                    </ul>
+                    
+                    <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+                        <p>This report is generated based on Singapore water supply standards including PUB guidelines and SS 636:2018.</p>
+                        <p>For official submissions, please verify calculations with a qualified Professional Engineer.</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(content);
+            printWindow.document.close();
+            printWindow.focus();
+            
+            setTimeout(() => {
+                printWindow.print();
+                showAlert('Use your browser\'s print dialog to save as PDF', 'success');
+            }, 250);
+        }
+
+        function printReport() {
+            playClickSound();
+            const results = window.calculationResults;
+            if (!results) {
+                showAlert('Please calculate tank size first', 'warning');
+                return;
+            }
+            window.print();
+        }
+
+        function shareResults() {
+            playClickSound();
+            const results = window.calculationResults;
+            if (!results) {
+                showAlert('Please calculate tank size first', 'warning');
+                return;
+            }
+            
+            // Create shareable text summary
+            const summary = `Water Tank Sizing Results:\n` +
+                `Total Tank Size: ${(results.totalTankSize / 1000).toFixed(1)} m³\n` +
+                `Building Type: ${results.buildingType.replace(/-/g, ' ')}\n` +
+                `Occupants: ${results.occupants}\n` +
+                `Daily Consumption: ${results.dailyConsumption.toLocaleString()} L\n` +
+                `Tank Dimensions: ${results.tankLength.toFixed(1)} × ${results.tankWidth.toFixed(1)} × ${results.tankHeight.toFixed(1)} m`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Water Tank Sizing Results',
+                    text: summary,
+                    url: window.location.href
+                }).then(() => {
+                    showAlert('Results shared successfully!', 'success');
+                }).catch(err => {
+                    // User cancelled sharing
+                });
+            } else {
+                // Fallback: Copy to clipboard
+                const textArea = document.createElement('textarea');
+                textArea.value = summary;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showAlert('Results copied to clipboard!', 'success');
+                } catch (err) {
+                    showAlert('Unable to copy results', 'error');
+                }
+                
+                document.body.removeChild(textArea);
+            }
+        }
+
+        // Add function to export as CSV
+        function exportCSV() {
+            playClickSound();
+            const results = window.calculationResults;
+            if (!results) {
+                showAlert('Please calculate tank size first', 'warning');
+                return;
+            }
+            
+            const csvContent = `Parameter,Value,Unit
+Building Type,${results.buildingType.replace(/-/g, ' ')},
+Number of Occupants,${results.occupants},persons
+Storage Duration,${results.storageHours},hours
+Daily Consumption Rate,${consumptionRates[results.buildingType]},L/person/day
+Total Daily Consumption,${results.dailyConsumption},Litres
+Peak Hour Demand,${results.peakHourDemand.toFixed(0)},L/hr
+Base Storage Requirement,${(results.storageRequirement / 1000).toFixed(1)},m³
+Additional Requirements,${(results.additionalStorage / 1000).toFixed(1)},m³
+Total Tank Size,${(results.totalTankSize / 1000).toFixed(1)},m³
+Tank Length,${results.tankLength.toFixed(2)},m
+Tank Width,${results.tankWidth.toFixed(2)},m
+Tank Height,${results.tankHeight.toFixed(2)},m`;
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `water-tank-sizing-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showAlert('CSV file downloaded successfully!', 'success');
+        }
+
+        // Scroll to Calculator
+        function scrollToCalculator() {
+            playClickSound();
+            document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize Toggle Switches
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                playClickSound();
+            });
+        });
+
+        // Add input event listeners
+        document.querySelectorAll('.form-input, .form-select').forEach(input => {
+            input.addEventListener('focus', () => playClickSound());
+            input.addEventListener('change', () => playClickSound());
+        });
+
+        // Add button hover sounds
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                if (soundEnabled) playSound(400, 30);
+            });
+        });
+
+        // Event Listeners
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('soundToggle').addEventListener('click', toggleSound);
+
+        // Close modals on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    playClickSound();
+                }
+            });
+        });
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initTheme();
+            initAudio();
+            createBubbles();
+            createParticles();
+        });
+
+        // Handle window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const chart = document.getElementById('consumptionChart');
+                if (chart && chart.getContext) {
+                    // Redraw chart on resize
+                    const resultsSection = document.getElementById('resultsSection');
+                    if (resultsSection.style.display !== 'none') {
+                        // Re-render chart with current data
+                    }
+                }
+            }, 250);
+        });
+
+        // Form validation
+        document.getElementById('calculatorForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            calculateTankSize();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'p':
+                        e.preventDefault();
+                        printReport();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        toggleSound();
+                        break;
+                    case 'd':
+                        e.preventDefault();
+                        toggleTheme();
+                        break;
+                }
+            }
+        });
+
+        // Touch gesture support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                // Swipe left - could toggle theme
+            }
+            if (touchEndX > touchStartX + 50) {
+                // Swipe right - could show menu
+            }
+        }
+
+        // Performance optimization - Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for animation
+        document.querySelectorAll('.card, .result-card').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Service Worker for offline support (optional)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // navigator.serviceWorker.register('/sw.js');
+            });
+        }
+
+        // Add CSS animation for slide-out
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slide-out {
+                to {
+                    transform: translateX(-100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
